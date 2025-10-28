@@ -195,9 +195,7 @@ print(json_val)
 ### Asynchronous Apollo Client
 
 ```python
-import argparse
 import asyncio
-
 from pyapollo.async_client import AsyncApolloClient
 
 
@@ -233,9 +231,144 @@ async def main():
         json_val = await client.get_value("text_key")
         print(json_val)
 
+    # Async client with custom config server
+    async with AsyncApolloClient(
+        app_id=app_id,
+        config_server_host="http://config-server.example.com",
+        config_server_port=8080
+    ) as client:
+        # Dynamically update configuration
+        await client.update_config(
+            timeout=120,
+            namespaces=["application", "cache"]
+        )
+
+        val = await client.get_value("sample_key")
+        print(val)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+### Dynamic Configuration Updates
+
+pyapollo supports dynamic updates of client configuration parameters at runtime without needing to recreate the client instance:
+
+```python
+from pyapollo.client import ApolloClient
+
+# Create client
+client = ApolloClient(
+    meta_server_address="http://localhost:8080",
+    app_id="my-app",
+    timeout=30,
+    cycle_time=60
+)
+
+# Update single parameter
+client.update_config(timeout=120)
+
+# Batch update multiple parameters
+client.update_config(
+    timeout=60,
+    cycle_time=30,
+    cluster="production"
+)
+
+# Update namespaces
+client.update_config(
+    namespaces=["application", "redis", "database"]
+)
+
+# Environment switching
+client.update_config(
+    meta_server_address="http://prod-apollo:8080",
+    env="PROD",
+    cluster="production"
+)
+
+# Add authentication
+client.update_config(
+    app_secret="your-secret-key"
+)
+
+# Custom config server (bypass meta server discovery)
+client.update_config(
+    config_server_host="http://config.example.com",
+    config_server_port=8080
+)
+
+# View current configuration
+config = client.get_current_config()
+print(config)
+```
+
+#### Custom Config Server
+
+Besides using meta server for automatic config server discovery, you can directly specify config server address:
+
+```python
+from pyapollo.client import ApolloClient
+
+# Connect directly to known config server, no meta server needed
+client = ApolloClient(
+    app_id="my-app",
+    config_server_host="http://config-server.example.com",
+    config_server_port=8080
+)
+
+# Switch config server at runtime
+client.update_config(
+    config_server_host="http://backup-config.example.com",
+    config_server_port=9090
+)
+
+# Switch back to meta server discovery (need to provide meta_server_address)
+client.update_config(
+    meta_server_address="http://meta-server.example.com",
+    config_server_host=None,  # Clear custom config
+    config_server_port=None
+)
+```
+
+#### Supported Update Parameters
+
+| Parameter           | Type        | Description                 |
+| ------------------- | ----------- | --------------------------- |
+| meta_server_address | str         | Apollo server address       |
+| app_id              | str         | Application ID              |
+| app_secret          | str \| None | Application secret          |
+| cluster             | str         | Cluster name                |
+| env                 | str         | Environment name            |
+| namespaces          | List[str]   | List of namespaces          |
+| ip                  | str \| None | Client IP address           |
+| timeout             | int         | Request timeout in seconds  |
+| cycle_time          | int         | Configuration refresh cycle |
+| cache_file_dir_path | str \| None | Cache file directory path   |
+| config_server_host  | str \| None | Custom config server host   |
+| config_server_port  | int \| None | Custom config server port   |
+
+#### Special Handling for Parameter Updates
+
+- **meta_server_address**: Re-fetches config server list after update
+- **app_id**: Reinitializes cache file paths after update
+- **namespaces**: Clears cache for removed namespaces after update
+- **cycle_time**: Restarts polling thread after update
+- **cache_file_dir_path**: Reinitializes cache directory after update
+
+#### Error Handling
+
+Parameter updates include comprehensive validation:
+
+```python
+try:
+    # Invalid parameters will raise ValueError
+    client.update_config(timeout=-1)  # Negative timeout
+    client.update_config(namespaces=[])  # Empty namespace list
+    client.update_config(app_id="")  # Empty app ID
+except ValueError as e:
+    print(f"Parameter validation failed: {e}")
 ```
 
 ## Example Code
@@ -252,6 +385,22 @@ python examples/sync_demo.py
 
 ```bash
 python examples/async_demo.py
+```
+
+### Configuration Update Examples
+
+```bash
+# Detailed configuration update demonstration
+python examples/update_config_demo.py
+
+# Simple configuration update examples
+python examples/simple_update_examples.py
+
+# Custom config server examples
+python examples/custom_config_server_demo.py
+
+# Async client custom config server examples
+python examples/async_custom_config_server_demo.py
 ```
 
 ### Environment Variables Configuration Example

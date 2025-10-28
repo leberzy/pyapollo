@@ -195,9 +195,7 @@ print(json_val)
 ### 异步 Apollo 客户端
 
 ```python
-import argparse
 import asyncio
-
 from pyapollo.async_client import AsyncApolloClient
 
 
@@ -233,9 +231,144 @@ async def main():
         json_val = await client.get_value("text_key")
         print(json_val)
 
+    # 使用自定义配置服务器的异步客户端
+    async with AsyncApolloClient(
+        app_id=app_id,
+        config_server_host="http://config-server.example.com",
+        config_server_port=8080
+    ) as client:
+        # 动态更新配置
+        await client.update_config(
+            timeout=120,
+            namespaces=["application", "cache"]
+        )
+
+        val = await client.get_value("sample_key")
+        print(val)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+### 动态配置更新
+
+pyapollo 支持在运行时动态更新客户端配置参数，无需重新创建客户端实例：
+
+```python
+from pyapollo.client import ApolloClient
+
+# 创建客户端
+client = ApolloClient(
+    meta_server_address="http://localhost:8080",
+    app_id="my-app",
+    timeout=30,
+    cycle_time=60
+)
+
+# 动态更新单个参数
+client.update_config(timeout=120)
+
+# 批量更新多个参数
+client.update_config(
+    timeout=60,
+    cycle_time=30,
+    cluster="production"
+)
+
+# 更新命名空间
+client.update_config(
+    namespaces=["application", "redis", "database"]
+)
+
+# 环境切换
+client.update_config(
+    meta_server_address="http://prod-apollo:8080",
+    env="PROD",
+    cluster="production"
+)
+
+# 添加认证
+client.update_config(
+    app_secret="your-secret-key"
+)
+
+# 自定义配置服务器（绕过元服务器发现）
+client.update_config(
+    config_server_host="http://config.example.com",
+    config_server_port=8080
+)
+
+# 查看当前配置
+config = client.get_current_config()
+print(config)
+```
+
+#### 自定义配置服务器
+
+除了使用元服务器自动发现配置服务器外，还可以直接指定配置服务器地址：
+
+```python
+from pyapollo.client import ApolloClient
+
+# 直接连接到已知配置服务器，无需元服务器
+client = ApolloClient(
+    app_id="my-app",
+    config_server_host="http://config-server.example.com",
+    config_server_port=8080
+)
+
+# 运行时切换配置服务器
+client.update_config(
+    config_server_host="http://backup-config.example.com",
+    config_server_port=9090
+)
+
+# 切换回使用元服务器发现（需要提供 meta_server_address）
+client.update_config(
+    meta_server_address="http://meta-server.example.com",
+    config_server_host=None,  # 清除自定义配置
+    config_server_port=None
+)
+```
+
+#### 支持的更新参数
+
+| 参数                | 类型        | 说明                     |
+| ------------------- | ----------- | ------------------------ |
+| meta_server_address | str         | Apollo 服务端地址        |
+| app_id              | str         | 应用 ID                  |
+| app_secret          | str \| None | 应用密钥                 |
+| cluster             | str         | 集群名称                 |
+| env                 | str         | 环境名称                 |
+| namespaces          | List[str]   | 命名空间列表             |
+| ip                  | str \| None | 客户端 IP 地址           |
+| timeout             | int         | 请求超时时间（秒）       |
+| cycle_time          | int         | 配置刷新周期（秒）       |
+| cache_file_dir_path | str \| None | 缓存文件目录路径         |
+| config_server_host  | str \| None | 自定义配置服务器主机地址 |
+| config_server_port  | int \| None | 自定义配置服务器端口     |
+
+#### 参数更新的特殊处理
+
+- **meta_server_address**: 更新后会重新获取配置服务器列表
+- **app_id**: 更新后会重新初始化缓存文件路径
+- **namespaces**: 更新后会清理已移除命名空间的缓存
+- **cycle_time**: 更新后会重启轮询线程
+- **cache_file_dir_path**: 更新后会重新初始化缓存目录
+
+#### 错误处理
+
+参数更新包含完善的验证机制：
+
+```python
+try:
+    # 无效参数会抛出 ValueError
+    client.update_config(timeout=-1)  # 负数超时
+    client.update_config(namespaces=[])  # 空命名空间列表
+    client.update_config(app_id="")  # 空应用ID
+except ValueError as e:
+    print(f"参数验证失败: {e}")
 ```
 
 ## 示例代码
@@ -252,6 +385,22 @@ python examples/sync_demo.py
 
 ```bash
 python examples/async_demo.py
+```
+
+### 配置更新示例
+
+```bash
+# 详细的配置更新演示
+python examples/update_config_demo.py
+
+# 简单的配置更新示例
+python examples/simple_update_examples.py
+
+# 自定义配置服务器示例
+python examples/custom_config_server_demo.py
+
+# 异步客户端自定义配置服务器示例
+python examples/async_custom_config_server_demo.py
 ```
 
 ### 环境变量配置示例

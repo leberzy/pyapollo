@@ -66,6 +66,8 @@ class AsyncApolloClient(AsyncConfigClientInterface):
         timeout: int = 10,
         cycle_time: int = 30,
         cache_file_dir_path: Optional[str] = None,
+        config_server_host: Optional[str] = None,
+        config_server_port: Optional[int] = None,
         session: Optional[aiohttp.ClientSession] = None,
         settings: Optional[ApolloSettingsConfig] = None,
     ):
@@ -83,6 +85,8 @@ class AsyncApolloClient(AsyncConfigClientInterface):
             ip: Deploy IP for grey release, default value is the local IP
             cycle_time: Cycle time to update configuration content from server
             cache_file_dir_path: Directory path to store the configuration cache file
+            config_server_host: Custom config server host (e.g., 'http://localhost'), if provided, will skip meta server discovery
+            config_server_port: Custom config server port (e.g., 8080), used with config_server_host
             session: aiohttp client session, if not provided, a new one will be created
             settings: ApolloSettingsConfig instance, if provided other parameters will be ignored
 
@@ -151,6 +155,10 @@ class AsyncApolloClient(AsyncConfigClientInterface):
         # Initialize notification map
         self._notification_map = {namespace: -1 for namespace in namespaces}
 
+        # Custom config server settings (applies regardless of settings vs direct parameters)
+        self._custom_config_server_host = config_server_host
+        self._custom_config_server_port = config_server_port
+
         # Initialize other attributes
         self._cache: Dict = {}
         self._hash: Dict = {}
@@ -183,7 +191,7 @@ class AsyncApolloClient(AsyncConfigClientInterface):
     async def __aenter__(self):
         """Async context manager entry"""
         await self._ensure_session()
-        await self.update_config_server()
+        await self._initialize_config_server()
         await self.fetch_configuration()
         await self.start_polling()
         return self
@@ -519,9 +527,32 @@ class AsyncApolloClient(AsyncConfigClientInterface):
             logger.error(f"Error getting service configuration: {e}")
             raise
 
+    async def _initialize_config_server(self) -> None:
+        """
+        Initialize config server using custom settings or meta server discovery
+        """
+
+        if (
+            hasattr(self, "_custom_config_server_host")
+            and self._custom_config_server_host
+        ):
+            # Use custom config server settings
+            self._config_server_host = self._custom_config_server_host.rstrip("/")
+            self._config_server_port = self._custom_config_server_port or 8080
+            self._config_server_url = (
+                f"{self._config_server_host}:{self._config_server_port}"
+            )
+
+            logger.info(
+                f"Using custom config server - host: {self._config_server_host}, port: {self._config_server_port}"
+            )
+        else:
+            # Use meta server discovery
+            await self.update_config_server()
+
     async def update_config_server(self, exclude: str = None) -> str:
         """
-        Update the config server info
+        Update the config server info via meta server discovery
         """
         service_conf = await self.get_service_conf()
         logger.debug(f"Apollo service conf: {service_conf}")
@@ -584,3 +615,252 @@ class AsyncApolloClient(AsyncConfigClientInterface):
         except (json.JSONDecodeError, TypeError):
             logger.error(f"The value of key({key}) is not json format")
             return default_val or {}
+
+    async def update_config(self, **kwargs) -> None:
+        """
+        Update client configuration parameters dynamically.
+
+        Supported parameters:
+            meta_server_address (str): Apollo meta server address
+            app_id (str): Application ID
+            app_secret (str): Application secret
+            cluster (str): Cluster name
+            env (str): Environment
+            namespaces (List[str]): List of namespaces
+            ip (str): Deploy IP for grey release
+            timeout (int): HTTP request timeout seconds
+            cycle_time (int): Cycle time to update configuration
+            cache_file_dir_path (str): Directory path to store cache files
+            config_server_host (str): Custom config server host
+            config_server_port (int): Custom config server port
+
+        Example:
+            await client.update_config(
+                timeout=60,
+                cycle_time=20,
+                namespaces=["application", "redis"]
+            )
+        """
+
+        # Parameter validation
+        updated_params = []
+        needs_server_update = False
+        needs_cache_reinit = False
+        needs_polling_restart = False
+
+        # Handle meta_server_address update
+        if "meta_server_address" in kwargs:
+            new_address = kwargs["meta_server_address"]
+            if not isinstance(new_address, str) or not new_address.strip():
+                raise ValueError("meta_server_address must be a non-empty string")
+            if new_address != self._meta_server_address:
+                self._meta_server_address = new_address.rstrip("/")
+                needs_server_update = True
+                updated_params.append("meta_server_address")
+
+        # Handle app_id update
+        if "app_id" in kwargs:
+            new_app_id = kwargs["app_id"]
+            if not isinstance(new_app_id, str) or not new_app_id.strip():
+                raise ValueError("app_id must be a non-empty string")
+            if new_app_id != self._app_id:
+                self._app_id = new_app_id
+                needs_cache_reinit = True
+                updated_params.append("app_id")
+
+        # Handle app_secret update
+        if "app_secret" in kwargs:
+            new_secret = kwargs["app_secret"]
+            if new_secret is not None and not isinstance(new_secret, str):
+                raise ValueError("app_secret must be a string or None")
+            if new_secret != self._app_secret:
+                self._app_secret = new_secret
+                updated_params.append("app_secret")
+
+        # Handle cluster update
+        if "cluster" in kwargs:
+            new_cluster = kwargs["cluster"]
+            if not isinstance(new_cluster, str) or not new_cluster.strip():
+                raise ValueError("cluster must be a non-empty string")
+            if new_cluster != self._cluster:
+                self._cluster = new_cluster
+                updated_params.append("cluster")
+
+        # Handle env update
+        if "env" in kwargs:
+            new_env = kwargs["env"]
+            if not isinstance(new_env, str) or not new_env.strip():
+                raise ValueError("env must be a non-empty string")
+            if new_env != self._env:
+                self._env = new_env
+                updated_params.append("env")
+
+        # Handle namespaces update
+        if "namespaces" in kwargs:
+            new_namespaces = kwargs["namespaces"]
+            if not isinstance(new_namespaces, list) or not new_namespaces:
+                raise ValueError("namespaces must be a non-empty list")
+            if not all(isinstance(ns, str) and ns.strip() for ns in new_namespaces):
+                raise ValueError("All namespaces must be non-empty strings")
+
+            # Update notification map
+            old_namespaces = set(self._notification_map.keys())
+            new_namespaces_set = set(new_namespaces)
+
+            if old_namespaces != new_namespaces_set:
+                self._notification_map = {namespace: -1 for namespace in new_namespaces}
+
+                # Clear cache for removed namespaces
+                async with self._update_cache_lock:
+                    for ns in old_namespaces - new_namespaces_set:
+                        self._cache.pop(ns, None)
+                        self._hash.pop(ns, None)
+
+                updated_params.append("namespaces")
+
+        # Handle ip update
+        if "ip" in kwargs:
+            new_ip = kwargs["ip"]
+            if new_ip is not None and not isinstance(new_ip, str):
+                raise ValueError("ip must be a string or None")
+            new_ip_resolved = self._get_local_ip_address(new_ip)
+            if new_ip_resolved != self.ip:
+                self.ip = new_ip_resolved
+                updated_params.append("ip")
+
+        # Handle timeout update
+        if "timeout" in kwargs:
+            new_timeout = kwargs["timeout"]
+            if not isinstance(new_timeout, int) or new_timeout <= 0:
+                raise ValueError("timeout must be a positive integer")
+            if new_timeout != self._timeout:
+                self._timeout = new_timeout
+                updated_params.append("timeout")
+
+        # Handle cycle_time update
+        if "cycle_time" in kwargs:
+            new_cycle_time = kwargs["cycle_time"]
+            if not isinstance(new_cycle_time, int) or new_cycle_time <= 0:
+                raise ValueError("cycle_time must be a positive integer")
+            if new_cycle_time != self._cycle_time:
+                self._cycle_time = new_cycle_time
+                needs_polling_restart = True
+                updated_params.append("cycle_time")
+
+        # Handle cache_file_dir_path update
+        if "cache_file_dir_path" in kwargs:
+            new_cache_path = kwargs["cache_file_dir_path"]
+            if new_cache_path is not None and not isinstance(new_cache_path, str):
+                raise ValueError("cache_file_dir_path must be a string or None")
+            if new_cache_path != self._cache_file_dir_path:
+                self._init_cache_file_dir_path(new_cache_path)
+                needs_cache_reinit = True
+                updated_params.append("cache_file_dir_path")
+
+        # Handle config_server_host update
+        if "config_server_host" in kwargs:
+            new_host = kwargs["config_server_host"]
+            if new_host is not None and not isinstance(new_host, str):
+                raise ValueError("config_server_host must be a string or None")
+            if new_host != getattr(self, "_custom_config_server_host", None):
+                self._custom_config_server_host = new_host
+                if new_host:
+                    self._config_server_host = new_host.rstrip("/")
+                    # If only host is provided, keep current port or use default
+                    if (
+                        not hasattr(self, "_custom_config_server_port")
+                        or self._custom_config_server_port is None
+                    ):
+                        self._config_server_port = 8080
+                    self._config_server_url = (
+                        f"{self._config_server_host}:{self._config_server_port}"
+                    )
+                    needs_server_update = (
+                        False  # Skip meta server update since we're using custom config
+                    )
+                else:
+                    # Reset to use meta server discovery
+                    needs_server_update = True
+                updated_params.append("config_server_host")
+
+        # Handle config_server_port update
+        if "config_server_port" in kwargs:
+            new_port = kwargs["config_server_port"]
+            if new_port is not None and (
+                not isinstance(new_port, int) or new_port <= 0
+            ):
+                raise ValueError(
+                    "config_server_port must be a positive integer or None"
+                )
+            if new_port != getattr(self, "_custom_config_server_port", None):
+                self._custom_config_server_port = new_port
+                if (
+                    new_port
+                    and hasattr(self, "_custom_config_server_host")
+                    and self._custom_config_server_host
+                ):
+                    self._config_server_port = new_port
+                    self._config_server_url = (
+                        f"{self._config_server_host}:{self._config_server_port}"
+                    )
+                    needs_server_update = (
+                        False  # Skip meta server update since we're using custom config
+                    )
+                updated_params.append("config_server_port")
+
+        # Apply changes that require reinitialization
+        if needs_server_update:
+            try:
+                await self.update_config_server()
+            except Exception as e:
+                logger.error(f"Failed to update config server: {e}")
+
+        if needs_cache_reinit or needs_server_update:
+            try:
+                await self.fetch_configuration()
+            except Exception as e:
+                logger.error(f"Failed to fetch configuration after update: {e}")
+
+        if needs_polling_restart:
+            try:
+                await self.stop_polling()
+                await self.start_polling()
+            except Exception as e:
+                logger.error(f"Failed to restart polling task: {e}")
+
+        if updated_params:
+            logger.info(
+                f"Successfully updated Apollo client parameters: {', '.join(updated_params)}"
+            )
+        else:
+            logger.info("No parameters were changed")
+
+    def get_current_config(self) -> Dict[str, Any]:
+        """
+        Get current client configuration parameters.
+
+        Returns:
+            Dict containing current configuration values
+        """
+
+        return {
+            "meta_server_address": self._meta_server_address,
+            "app_id": self._app_id,
+            "app_secret": self._app_secret,
+            "cluster": self._cluster,
+            "env": self._env,
+            "namespaces": list(self._notification_map.keys()),
+            "ip": self.ip,
+            "timeout": self._timeout,
+            "cycle_time": self._cycle_time,
+            "cache_file_dir_path": self._cache_file_dir_path,
+            "config_server_url": self._config_server_url,
+            "config_server_host": self._config_server_host,
+            "config_server_port": self._config_server_port,
+            "custom_config_server_host": getattr(
+                self, "_custom_config_server_host", None
+            ),
+            "custom_config_server_port": getattr(
+                self, "_custom_config_server_port", None
+            ),
+        }
