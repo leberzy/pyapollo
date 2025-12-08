@@ -40,13 +40,13 @@
 通过 pip 安装：
 
 ```bash
-pip install git+https://github.com/OuterCloud/pyapollo.git@main
+pip install pyapollo-zenkilan
 ```
 
 写到 requirements.txt 里也是一样：
 
 ```
-git+https://github.com/OuterCloud/pyapollo.git@main
+pyapollo-zenkilan>=0.2.0
 ```
 
 ## 使用方法

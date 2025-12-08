@@ -40,15 +40,14 @@ This project is implemented based on this principle. The service discovery inter
 Install via pip:
 
 ```bash
-pip install git+https://github.com/OuterCloud/pyapollo.git@main
+pip install pyapollo-zenkilan
 ```
 
 Or add to requirements.txt:
 
 ```
-git+https://github.com/OuterCloud/pyapollo.git@main
+pyapollo-zenkilan>=0.2.0
 ```
-
 ## Usage
 
 Parameter descriptions:
