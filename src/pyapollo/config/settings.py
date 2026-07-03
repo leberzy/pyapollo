@@ -32,6 +32,9 @@ class ApolloSettingsConfig(BaseSettings):
     2. .env file (either in the current directory or at a custom path)
     3. Direct initialization with parameters
 
+    Keys in ``.env`` that are not Apollo settings (e.g. ``DATABASE_URL``) are
+    ignored so a shared project ``.env`` can hold other application config.
+
     Attributes:
         meta_server_address: Apollo meta server address.
         app_id: Apollo application ID.
@@ -182,6 +185,7 @@ class ApolloSettingsConfig(BaseSettings):
             case_sensitive=False,
             env_file=env_file_path,
             env_file_encoding="utf-8",
+            extra="ignore",
         )
 
         # Create a new class with the custom config
@@ -199,6 +203,7 @@ class ApolloSettingsConfig(BaseSettings):
         case_sensitive=False,
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
         json_schema_extra={
             "examples": [
                 {

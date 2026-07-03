@@ -6,6 +6,22 @@ from pyapollo.config import ApolloSettingsConfig
 from pyapollo.config.settings import resolve_label
 
 
+def test_from_env_file_ignores_non_apollo_keys(tmp_path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "APOLLO_META_SERVER_ADDRESS=http://localhost:8080\n"
+        "APOLLO_APP_ID=test-app\n"
+        "DATABASE_URL=postgres://localhost/db\n"
+        "REDIS_HOST=127.0.0.1\n",
+        encoding="utf-8",
+    )
+
+    settings = ApolloSettingsConfig.from_env_file(str(env_file))
+
+    assert settings.meta_server_address == "http://localhost:8080"
+    assert settings.app_id == "test-app"
+
+
 def test_namespaces_from_comma_separated_string() -> None:
     settings = ApolloSettingsConfig(
         meta_server_address="http://localhost:8080",
