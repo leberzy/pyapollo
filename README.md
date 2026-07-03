@@ -44,13 +44,19 @@
 通过 pip 安装：
 
 ```bash
-pip install pyapollo-zenkilan
+pip install shebao-apollo-sdk
 ```
 
 写到 requirements.txt 里也是一样：
 
 ```
-pyapollo-zenkilan>=1.0.0
+shebao-apollo-sdk>=1.0.0
+```
+
+代码里 import 名仍是 `pyapollo`（与 pip 包名不同）：
+
+```python
+from pyapollo import ApolloClient, AsyncApolloClient
 ```
 
 ## 使用方法

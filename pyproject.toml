@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyapollo-zenkilan"
+name = "shebao-apollo-sdk"
 version = "1.0.0"
 description = "Apollo configuration client with async support and pydantic integration"
 readme = "README.md"

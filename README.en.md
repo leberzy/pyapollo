@@ -44,13 +44,19 @@ This project is implemented based on this principle. The service discovery inter
 Install via pip:
 
 ```bash
-pip install pyapollo-zenkilan
+pip install shebao-apollo-sdk
 ```
 
 Or add to requirements.txt:
 
 ```
-pyapollo-zenkilan>=1.0.0
+shebao-apollo-sdk>=1.0.0
+```
+
+The Python import name remains `pyapollo` (distinct from the pip package name):
+
+```python
+from pyapollo import ApolloClient, AsyncApolloClient
 ```
 
 ## Usage

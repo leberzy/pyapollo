@@ -1,7 +1,7 @@
 # pyapollo 改造方案文档
 
 > 版本：Draft v2
-> 适用仓库：`pyapollo/`（PyPI 包名 `pyapollo-zenkilan`，import 名 `pyapollo`）
+> 适用仓库：`pyapollo/`（PyPI 包名 `shebao-apollo-sdk`，import 名 `pyapollo`）
 > 目标版本：`1.0.0`（**允许破坏性变更、不保留兼容层**，仅提供迁移指南）
 >
 > 已确认的关键决策（见文末「已确认决策」）：
@@ -36,7 +36,7 @@
 - 不实现 Apollo OpenAPI（配置写入 / 管理端能力），仅做客户端读取。
 - 不引入重型依赖（如 pydantic 已用于 settings，其余保持轻量）。
 - 不保留 `0.x` 的向后兼容 shim（本轮为 `1.0.0`，破坏性变更集中一次做完，通过迁移指南承接）。
-- 不做 PyPI 包改名（`pyapollo-zenkilan` / import `pyapollo` 维持，避免再引破坏）。
+- PyPI 包名定为 `shebao-apollo-sdk`，import 名 `pyapollo` 维持不变。
 
 ---
 

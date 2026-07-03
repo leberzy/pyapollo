@@ -20,6 +20,7 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- PyPI distribution renamed to **`shebao-apollo-sdk`** (import name `pyapollo` unchanged).
 - Package layout migrated to `src/pyapollo/`.
 - Python requirement raised to **>=3.12**.
 - Logging switched from `loguru` to standard library `logging`.
@@ -42,6 +43,7 @@ See [docs/migration-1.0.md](docs/migration-1.0.md).
 |-----|-----|
 | `client.stop_polling_thread()` | `client.stop()` |
 | `await client.stop_polling()` | `await client.stop()` |
+| `pip install pyapollo-zenkilan` | `pip install shebao-apollo-sdk` |
 | `from pyapollo.client import ApolloClient` | `from pyapollo import ApolloClient` |
 | Same-args client reuse (singleton) | Hold one instance yourself if needed |
 

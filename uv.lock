@@ -879,48 +879,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyapollo-zenkilan"
-version = "1.0.0"
-source = { editable = "." }
-dependencies = [
-    { name = "aiofiles" },
-    { name = "aiohttp" },
-    { name = "pydantic-settings" },
-    { name = "requests" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "aioresponses" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "responses" },
-    { name = "ruff" },
-    { name = "types-requests" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiofiles", specifier = ">=0.6.0" },
-    { name = "aiohttp", specifier = ">=3.7.0" },
-    { name = "aioresponses", marker = "extra == 'dev'", specifier = ">=0.7" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0" },
-    { name = "pydantic-settings", specifier = ">=2.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "requests", specifier = ">=2.25.0" },
-    { name = "responses", marker = "extra == 'dev'", specifier = ">=0.25" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
-    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.31" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "pydantic"
 version = "2.13.4"
 source = { registry = "https://arch.shebao.net/simple/" }
@@ -1197,6 +1155,48 @@ wheels = [
     { url = "http://mvn.shebao.net/repository/pip-proxy/packages/fa/f0/fe47c501f9dea92a26d788ff98bb5d92ed4cb4c88792c5c88af6b697dc8e/ruff-0.15.20-py3-none-win_amd64.whl", hash = "sha256:a525c81c70fb0380344dd1d8745d8cc1c890b7fc94a58d5a07bd8eb9557b8415", size = 0, upload-time = "2026-06-25T17:20:31Z" },
     { url = "http://mvn.shebao.net/repository/pip-proxy/packages/d7/2b/9555445e1201d92b3195f45cdb153a0b68f24e0a4273f6e3d5ab46e212bb/ruff-0.15.20-py3-none-win_arm64.whl", hash = "sha256:2f5b2a6d614e8700388806a14996c40fab2c47b819ef57d790a34878858ed9ca", size = 0, upload-time = "2026-06-25T17:20:35Z" },
 ]
+
+[[package]]
+name = "shebao-apollo-sdk"
+version = "1.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "aiofiles" },
+    { name = "aiohttp" },
+    { name = "pydantic-settings" },
+    { name = "requests" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "aioresponses" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "responses" },
+    { name = "ruff" },
+    { name = "types-requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiofiles", specifier = ">=0.6.0" },
+    { name = "aiohttp", specifier = ">=3.7.0" },
+    { name = "aioresponses", marker = "extra == 'dev'", specifier = ">=0.7" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "requests", specifier = ">=2.25.0" },
+    { name = "responses", marker = "extra == 'dev'", specifier = ">=0.25" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
+    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.31" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "types-requests"

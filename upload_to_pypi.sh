@@ -7,7 +7,8 @@ echo "=== 直接发布到 PyPI ==="
 echo ""
 
 # 检查分发包
-if [ ! -f "dist/pyapollo_zenkilan-0.2.0.tar.gz" ] || [ ! -f "dist/pyapollo_zenkilan-0.2.0-py3-none-any.whl" ]; then
+if ! compgen -G "dist/shebao_apollo_sdk-*.tar.gz" > /dev/null || \
+   ! compgen -G "dist/shebao_apollo_sdk-*.whl" > /dev/null; then
     echo "❌ 错误: 分发包不存在"
     exit 1
 fi

@@ -20,7 +20,8 @@ if [ -z "$TWINE_PASSWORD" ]; then
 fi
 
 # 检查分发包是否存在
-if [ ! -f "dist/pyapollo-0.2.0.tar.gz" ] || [ ! -f "dist/pyapollo-0.2.0-py3-none-any.whl" ]; then
+if ! compgen -G "dist/shebao_apollo_sdk-*.tar.gz" > /dev/null || \
+   ! compgen -G "dist/shebao_apollo_sdk-*.whl" > /dev/null; then
     echo "错误: 分发包不存在，请先运行 'python -m build'"
     exit 1
 fi
@@ -36,7 +37,7 @@ case $choice in
         twine upload --repository testpypi dist/*
         echo ""
         echo "✅ 成功上传到 Test PyPI!"
-        echo "测试安装: pip install --index-url https://test.pypi.org/simple/ pyapollo"
+        echo "测试安装: pip install --index-url https://test.pypi.org/simple/ shebao-apollo-sdk"
         ;;
     2)
         echo "⚠️  即将上传到正式 PyPI，这将公开你的包！"
@@ -46,7 +47,7 @@ case $choice in
             twine upload dist/*
             echo ""
             echo "🎉 成功发布到 PyPI!"
-            echo "安装方式: pip install pyapollo"
+            echo "安装方式: pip install shebao-apollo-sdk"
         else
             echo "已取消发布"
         fi

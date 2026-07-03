@@ -5,7 +5,7 @@
 ## 环境要求
 
 - Python **>= 3.12**
-- 安装：`pip install "pyapollo-zenkilan>=1.0.0"`
+- 安装：`pip install "shebao-apollo-sdk>=1.0.0"`
 
 ## 保持不变的 API
 
