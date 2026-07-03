@@ -1,0 +1,45 @@
+CHANGELOG.md
+  s_0c03b2ed298811::t_ab883f5f3203c9 23
+  s_0c03b2ed298811::t_15ad6dfcf08b76 46
+README.en.md
+  s_0c03b2ed298811::t_e7a21e7438dde6 47
+  s_0c03b2ed298811::t_a2543fbefb5591 53
+  s_0c03b2ed298811::t_02003fd89a7cc5 56-59
+  s_0c03b2ed298811::t_298935dcdef7a5 54-55
+pyproject.toml
+  s_0c03b2ed298811::t_ce7f9036659538 6
+docs/refactor-plan.md
+  s_0c03b2ed298811::t_f03c9b22f77c80 39
+  s_0c03b2ed298811::t_90f35d28a70629 4
+docs/migration-1.0.md
+  s_0c03b2ed298811::t_ccf8440b0dd71d 8
+publish.sh
+  s_0c03b2ed298811::t_8edfbd29ba1687 50
+  s_0c03b2ed298811::t_4004b1d10a6e3b 23-24
+  s_0c03b2ed298811::t_3df1cb70930530 40
+upload_to_pypi.sh
+  s_0c03b2ed298811::t_84df2781bea427 10-11
+README.md
+  s_0c03b2ed298811::t_05b8e3b3a417b4 56-59
+  s_0c03b2ed298811::t_52e25b6f6b45f4 53
+  s_0c03b2ed298811::t_7e74a160a821e5 47
+  s_0c03b2ed298811::t_56e721463a3b91 54-55
+uv.lock
+  s_0c03b2ed298811::t_4dd5a823d51843 1159-1200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "a73eac7cc4af728a136f27f0f273020735c41dae",
+  "prompts": {},
+  "sessions": {
+    "s_0c03b2ed298811": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "314c50b2-ae14-4d26-9ea0-00053fe945bd",
+        "model": "default"
+      },
+      "human_author": "yangzheng <yangzheng@51shebao.com>"
+    }
+  }
+}
