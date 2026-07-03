@@ -24,7 +24,7 @@ Run this script:
 
 import os
 import argparse
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 
 def parse_args():

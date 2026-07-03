@@ -6,7 +6,7 @@ with the asynchronous Apollo client.
 """
 
 import asyncio
-from pyapollo.async_client import AsyncApolloClient
+from pyapollo import AsyncApolloClient
 
 
 async def example_1_direct_async_config_server():

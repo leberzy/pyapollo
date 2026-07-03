@@ -5,11 +5,22 @@ This module provides a configuration model for Apollo client settings using pyda
 It allows loading configuration from environment variables and .env files.
 """
 
-from typing import List, Optional, Any, Union, Type
 import os
+from typing import Any, cast
 
-from pydantic import field_validator, model_validator, ValidationInfo
+from pydantic import ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def resolve_label(explicit: str | None = None) -> str | None:
+    """
+    Resolve gray-release label (Java ``apollo.label`` / ``APP_LABEL``).
+
+    Priority: explicit parameter > ``APOLLO_LABEL`` env > ``APP_LABEL`` env (Java compat).
+    """
+    if explicit is not None:
+        return explicit or None
+    return os.environ.get("APOLLO_LABEL") or os.environ.get("APP_LABEL") or None
 
 
 class ApolloSettingsConfig(BaseSettings):
@@ -30,6 +41,7 @@ class ApolloSettingsConfig(BaseSettings):
         env: Apollo environment.
         namespaces: Apollo namespaces.
         ip: Client IP address.
+        label: Client label for gray release matching (Java ``apollo.label``).
         timeout: Request timeout in seconds.
         cycle_time: Configuration refresh cycle time in seconds.
         cache_file_dir_path: Local cache file directory path.
@@ -44,6 +56,8 @@ class ApolloSettingsConfig(BaseSettings):
         - APOLLO_CLUSTER=default
         - APOLLO_ENV=DEV
         - APOLLO_NAMESPACES=application,common,other  # Comma-separated list
+        - APOLLO_IP=10.0.0.1
+        - APOLLO_LABEL=gray-label-1
         - APOLLO_TIMEOUT=10
         - APOLLO_CYCLE_TIME=30
 
@@ -85,20 +99,19 @@ class ApolloSettingsConfig(BaseSettings):
     using_app_secret: bool = False
 
     # Optional parameters
-    app_secret: Optional[str] = None
+    app_secret: str | None = None
     cluster: str = "default"
     env: str = "DEV"
-    namespaces: Union[str, List[str]] = "application"  # Accept both string and list
-    ip: Optional[str] = None
+    namespaces: str | list[str] = "application"  # Accept both string and list
+    ip: str | None = None
+    label: str | None = None
     timeout: int = 10
     cycle_time: int = 30
-    cache_file_dir_path: Optional[str] = None
+    cache_file_dir_path: str | None = None
 
     @field_validator("app_secret")
     @classmethod
-    def validate_app_secret(
-        cls, v: Optional[str], info: ValidationInfo
-    ) -> Optional[str]:
+    def validate_app_secret(cls, v: str | None, info: ValidationInfo) -> str | None:
         """Validate app_secret based on using_app_secret flag.
 
         Args:
@@ -133,18 +146,16 @@ class ApolloSettingsConfig(BaseSettings):
             self.namespaces = ["application"]
         elif isinstance(self.namespaces, str):
             # Handle both comma-separated string and single namespace
-            self.namespaces = [
-                ns.strip() for ns in self.namespaces.split(",") if ns.strip()
-            ]
+            self.namespaces = [ns.strip() for ns in self.namespaces.split(",") if ns.strip()]
         elif not isinstance(self.namespaces, list):
-            raise ValueError(
-                "namespaces must be a string (comma-separated), list, or None"
-            )
+            raise ValueError("namespaces must be a string (comma-separated), list, or None")
+        if self.label is None:
+            self.label = resolve_label()
         return self
 
     @classmethod
     def from_env_file(
-        cls: Type["ApolloSettingsConfig"],
+        cls: type["ApolloSettingsConfig"],
         env_file_path: str,
         **kwargs: Any,
     ) -> "ApolloSettingsConfig":
@@ -181,7 +192,7 @@ class ApolloSettingsConfig(BaseSettings):
         )
 
         # Initialize with the custom config
-        return CustomSettings(**kwargs)
+        return cast("ApolloSettingsConfig", CustomSettings(**kwargs))
 
     model_config = SettingsConfigDict(
         env_prefix="APOLLO_",

@@ -5,16 +5,20 @@
 
 ## Introduction
 
-A Python client for Apollo configuration service implemented using the official Apollo HTTP API. Tested with Python 3.13 and the latest version of Apollo.
+A Python client for Apollo configuration service implemented using the official Apollo HTTP API (**1.0.0**). Requires **Python >= 3.12**, aligned with the Java official client, with `/notifications/v2` long polling.
 
 Key Features:
 
-- Real-time Updates: Supports Apollo configuration retrieval and real-time updates.
-- Secret Support: Supports Apollo applications with or without secret keys.
-- Distributed Deployment: Supports configuration retrieval for Apollo applications in distributed deployments.
-- Fault Tolerance: Automatically switches to the next available service node when an Apollo service node is unavailable.
-- Async Support: Provides an asynchronous client for async configuration retrieval.
-- Multiple Configuration Methods: Supports configuration via environment variables, .env files, or direct parameters.
+- **Long polling**: `/notifications/v2` near real-time updates + periodic fallback refresh
+- **Change listeners**: `add_change_listener()` for ADDED/MODIFIED/DELETED events
+- **Explicit lifecycle**: `start()` / `stop()` / context managers, configurable `autostart`
+- **Typed getters**: `get_int` / `get_bool` / `get_float` / `get_list`
+- **Ready state**: `is_ready()` to check if configuration has been loaded
+- Secret authentication, multiple namespaces, direct Config Server connection
+- Fault tolerance, thread-safe cache, async client
+- Standard library `logging` (no loguru dependency)
+
+> Upgrading from 0.x? See [Migration Guide](docs/migration-1.0.md) and [CHANGELOG](CHANGELOG.md).
 
 ## Why This Project
 
@@ -46,7 +50,7 @@ pip install pyapollo-zenkilan
 Or add to requirements.txt:
 
 ```
-pyapollo-zenkilan>=0.2.0
+pyapollo-zenkilan>=1.0.0
 ```
 
 ## Usage
@@ -94,8 +98,8 @@ A `.env.example` file is provided as a reference.
 In addition to the default `.env` file in the project root, you can specify a custom .env file path:
 
 ```python
-from pyapollo.settings import ApolloSettingsConfig
-from pyapollo.client import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
+from pyapollo import ApolloClient
 
 # Load from custom .env file path
 settings = ApolloSettingsConfig.from_env_file("path/to/custom.env")
@@ -136,14 +140,15 @@ export APOLLO_CYCLE_TIME=30
 | APOLLO_NAMESPACES          | Comma-separated list of namespaces     | application | No                            |
 | APOLLO_TIMEOUT             | Request timeout in seconds             | 10          | No                            |
 | APOLLO_CYCLE_TIME          | Configuration refresh cycle in seconds | 30          | No                            |
-| APOLLO_CACHE_FILE_DIR_PATH | Cache file directory path              | -           | No                            |
+| APOLLO_CACHE_FILE_DIR_PATH | Cache file directory path (settings) | -           | No                            |
+| APOLLO_CACHE_DIR           | Cache root directory (`cache.py` priority) | platform default | No                     |
 | APOLLO_IP                  | Client IP address                      | -           | No                            |
 
 #### Using ApolloSettingsConfig
 
 ```python
-from pyapollo.settings import ApolloSettingsConfig
-from pyapollo.client import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
+from pyapollo import ApolloClient
 
 # Create settings object
 settings = ApolloSettingsConfig(
@@ -157,10 +162,59 @@ settings = ApolloSettingsConfig(
 client = ApolloClient(settings=settings)
 ```
 
-### Synchronous Apollo Client
+### Synchronous Apollo Client (1.0 recommended)
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
+
+# Method 1: Context manager (auto start/stop)
+with ApolloClient(
+    meta_server_address="https://your-apollo/meta",
+    app_id="your-app-id",
+    app_secret="your-secret",  # optional
+    namespaces=["application", "prompt"],
+) as client:
+    if client.is_ready():
+        print(client.get_value("text_key"))
+        print(client.get_int("port", default=8080))
+
+# Method 2: Direct Config Server (skip Meta discovery)
+with ApolloClient(
+    app_id="your-app-id",
+    config_server_host="http://config.example.com",
+    config_server_port=8080,
+) as client:
+    print(client.get_json_value("json_key"))
+
+# Method 3: Environment variables / .env (APOLLO_*)
+with ApolloClient() as client:
+    print(client.get_value("key"))
+```
+
+Change listener:
+
+```python
+def on_change(event):
+    for key, ch in event.changes.items():
+        print(event.namespace, key, ch.change_type, ch.new_value)
+
+with ApolloClient(...) as client:
+    client.add_change_listener(on_change, namespaces=["application"])
+```
+
+Deferred start (testing):
+
+```python
+client = ApolloClient(..., autostart=False)
+client.start()
+# ...
+client.stop()
+```
+
+### Synchronous Apollo Client (detailed examples)
+
+```python
+from pyapollo import ApolloClient
 
 # Method 1: Direct parameters
 meta_server_address = "https://your-apollo/meta-server-address"
@@ -192,11 +246,32 @@ json_val = apollo.get_json_value("json_key")
 print(json_val)
 ```
 
-### Asynchronous Apollo Client
+### Asynchronous Apollo Client (1.0)
 
 ```python
 import asyncio
-from pyapollo.async_client import AsyncApolloClient
+from pyapollo import AsyncApolloClient
+
+
+async def main():
+    async with AsyncApolloClient(
+        app_id="your-app-id",
+        config_server_host="http://config.example.com",
+        config_server_port=8080,
+    ) as client:
+        if client.is_ready():
+            print(await client.get_value("text_key"))
+            print(await client.get_bool("feature.enabled", default=False))
+
+
+asyncio.run(main())
+```
+
+### Asynchronous Apollo Client (detailed examples)
+
+```python
+import asyncio
+from pyapollo import AsyncApolloClient
 
 
 async def main():
@@ -256,7 +331,7 @@ if __name__ == "__main__":
 pyapollo supports dynamic updates of client configuration parameters at runtime without needing to recreate the client instance:
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 # Create client
 client = ApolloClient(
@@ -309,7 +384,7 @@ print(config)
 Besides using meta server for automatic config server discovery, you can directly specify config server address:
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 # Connect directly to known config server, no meta server needed
 client = ApolloClient(

@@ -5,7 +5,7 @@ This example demonstrates how to dynamically update Apollo client configuration
 parameters during runtime using the new update_config method.
 """
 
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 
 def main():
@@ -144,7 +144,7 @@ def main():
 
     # Stop the polling thread
     print("\n9. Stopping Apollo client...")
-    client.stop_polling_thread()
+    client.stop()
     print("   ✓ Apollo client stopped")
 
 

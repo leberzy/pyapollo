@@ -5,16 +5,20 @@
 
 ## 简介
 
-使用官方的 Apollo HTTP API 实现的 Python 客户端。在 Python 3.13 以及最新版的 Apollo 上已经测试通过。
+使用官方的 Apollo HTTP API 实现的 Python 客户端（**1.0.0**）。要求 **Python >= 3.12**，与 Java 官方客户端对齐，支持 `/notifications/v2` 真长轮询。
 
 主要功能：
 
-- 支持实时更新：支持 Apollo 配置项获取与实时更新。
-- 支持密钥：支持有密钥/无密钥的 Apollo 应用配置获取。
-- 支持分布式部署：支持基于分布式部署的 Apollo 应用配置获取。
-- 有容灾机制：当一个 Apollo 服务节点不可用时，会自动切换到下一个可用的服务节点。
-- 支持异步：提供异步类型的客户端，支持异步获取配置项。
-- 支持多种配置方式：支持通过环境变量、.env 文件或直接参数配置。
+- **真长轮询**：`/notifications/v2` 近实时更新 + 定时兜底刷新
+- **变更监听**：`add_change_listener()` 感知配置 ADDED/MODIFIED/DELETED
+- **清晰生命周期**：`start()` / `stop()` / 上下文管理器，`autostart` 可控
+- **类型化取值**：`get_int` / `get_bool` / `get_float` / `get_list`
+- **就绪状态**：`is_ready()` 判断是否已成功加载配置
+- 支持密钥认证、多 namespace、直连 Config Server
+- 容灾切换、线程安全缓存、异步客户端
+- 标准库 `logging`（不再依赖 loguru）
+
+> 从 0.x 升级请参阅 [迁移指南](docs/migration-1.0.md) 与 [CHANGELOG](CHANGELOG.md)。
 
 ## 为什么写这个项目
 
@@ -46,7 +50,7 @@ pip install pyapollo-zenkilan
 写到 requirements.txt 里也是一样：
 
 ```
-pyapollo-zenkilan>=0.2.0
+pyapollo-zenkilan>=1.0.0
 ```
 
 ## 使用方法
@@ -94,8 +98,8 @@ APOLLO_CYCLE_TIME=30
 除了默认的项目根目录 `.env` 文件外，还可以指定自定义路径的 .env 文件：
 
 ```python
-from pyapollo.settings import ApolloSettingsConfig
-from pyapollo.client import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
+from pyapollo import ApolloClient
 
 # 从自定义路径加载 .env 文件
 settings = ApolloSettingsConfig.from_env_file("path/to/custom.env")
@@ -136,14 +140,15 @@ export APOLLO_CYCLE_TIME=30
 | APOLLO_NAMESPACES          | 命名空间列表，逗号分隔 | application | 否                                |
 | APOLLO_TIMEOUT             | 请求超时时间（秒）     | 10          | 否                                |
 | APOLLO_CYCLE_TIME          | 配置刷新周期（秒）     | 30          | 否                                |
-| APOLLO_CACHE_FILE_DIR_PATH | 缓存文件目录路径       | -           | 否                                |
+| APOLLO_CACHE_FILE_DIR_PATH | 缓存文件目录路径（settings） | -           | 否                                |
+| APOLLO_CACHE_DIR           | 缓存根目录（`cache.py` 优先） | 平台默认    | 否                                |
 | APOLLO_IP                  | 客户端 IP 地址         | -           | 否                                |
 
 #### 使用 ApolloSettingsConfig
 
 ```python
-from pyapollo.settings import ApolloSettingsConfig
-from pyapollo.client import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
+from pyapollo import ApolloClient
 
 # 创建配置对象
 settings = ApolloSettingsConfig(
@@ -157,10 +162,59 @@ settings = ApolloSettingsConfig(
 client = ApolloClient(settings=settings)
 ```
 
-### 同步 Apollo 客户端
+### 同步 Apollo 客户端（1.0 推荐）
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
+
+# 方式 1：上下文管理器（自动 start/stop）
+with ApolloClient(
+    meta_server_address="https://your-apollo/meta",
+    app_id="your-app-id",
+    app_secret="your-secret",  # 可选
+    namespaces=["application", "prompt"],
+) as client:
+    if client.is_ready():
+        print(client.get_value("text_key"))
+        print(client.get_int("port", default=8080))
+
+# 方式 2：直连 Config Server（跳过 Meta 发现）
+with ApolloClient(
+    app_id="your-app-id",
+    config_server_host="http://config.example.com",
+    config_server_port=8080,
+) as client:
+    print(client.get_json_value("json_key"))
+
+# 方式 3：环境变量 / .env（APOLLO_*）
+with ApolloClient() as client:
+    print(client.get_value("key"))
+```
+
+变更监听：
+
+```python
+def on_change(event):
+    for key, ch in event.changes.items():
+        print(event.namespace, key, ch.change_type, ch.new_value)
+
+with ApolloClient(...) as client:
+    client.add_change_listener(on_change, namespaces=["application"])
+```
+
+延迟启动（测试场景）：
+
+```python
+client = ApolloClient(..., autostart=False)
+client.start()
+# ...
+client.stop()
+```
+
+### 同步客户端（旧示例，仍可用）
+
+```python
+from pyapollo import ApolloClient
 
 # 方式1：直接传参
 meta_server_address = "https://your-apollo/meta-server-address"
@@ -192,11 +246,32 @@ json_val = apollo.get_json_value("json_key")
 print(json_val)
 ```
 
-### 异步 Apollo 客户端
+### 异步 Apollo 客户端（1.0）
 
 ```python
 import asyncio
-from pyapollo.async_client import AsyncApolloClient
+from pyapollo import AsyncApolloClient
+
+
+async def main():
+    async with AsyncApolloClient(
+        app_id="your-app-id",
+        config_server_host="http://config.example.com",
+        config_server_port=8080,
+    ) as client:
+        if client.is_ready():
+            print(await client.get_value("text_key"))
+            print(await client.get_bool("feature.enabled", default=False))
+
+
+asyncio.run(main())
+```
+
+### 异步客户端（详细示例）
+
+```python
+import asyncio
+from pyapollo import AsyncApolloClient
 
 
 async def main():
@@ -256,7 +331,7 @@ if __name__ == "__main__":
 pyapollo 支持在运行时动态更新客户端配置参数，无需重新创建客户端实例：
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 # 创建客户端
 client = ApolloClient(
@@ -309,7 +384,7 @@ print(config)
 除了使用元服务器自动发现配置服务器外，还可以直接指定配置服务器地址：
 
 ```python
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 # 直接连接到已知配置服务器，无需元服务器
 client = ApolloClient(

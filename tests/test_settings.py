@@ -1,48 +1,61 @@
-"""
-Test script for ApolloSettingsConfig with different namespaces formats.
-"""
+"""Tests for settings configuration."""
 
-from pyapollo.settings import ApolloSettingsConfig
+import pytest
 
-
-# pytest -vs tests/test_settings.py::test_env_file
-def test_env_file():
-    """Test loading settings from env file with different namespaces formats."""
-    try:
-        # Test with test.env file
-        settings = ApolloSettingsConfig.from_env_file("tests/example.env")
-        print("\nTest with test.env file:")
-        print(f"Namespaces: {settings.namespaces}")
-
-        # Test with direct initialization - string format
-        settings = ApolloSettingsConfig(
-            meta_server_address="http://localhost:8080",
-            app_id="test-app",
-            namespaces="app1,app2,app3",
-        )
-        print("\nTest with string format:")
-        print(f"Namespaces: {settings.namespaces}")
-
-        # Test with direct initialization - list format
-        settings = ApolloSettingsConfig(
-            meta_server_address="http://localhost:8080",
-            app_id="test-app",
-            namespaces=["app1", "app2", "app3"],
-        )
-        print("\nTest with list format:")
-        print(f"Namespaces: {settings.namespaces}")
-
-        # Test with default value
-        settings = ApolloSettingsConfig(
-            meta_server_address="http://localhost:8080", app_id="test-app"
-        )
-        print("\nTest with default value:")
-        print(f"Namespaces: {settings.namespaces}")
-
-    except Exception as e:
-        print(f"\nError occurred: {str(e)}")
-        raise
+from pyapollo.config import ApolloSettingsConfig
+from pyapollo.config.settings import resolve_label
 
 
-if __name__ == "__main__":
-    test_env_file()
+def test_namespaces_from_comma_separated_string() -> None:
+    settings = ApolloSettingsConfig(
+        meta_server_address="http://localhost:8080",
+        app_id="test-app",
+        namespaces="app1,app2,app3",
+    )
+    assert settings.namespaces == ["app1", "app2", "app3"]
+
+
+def test_namespaces_from_list() -> None:
+    settings = ApolloSettingsConfig(
+        meta_server_address="http://localhost:8080",
+        app_id="test-app",
+        namespaces=["app1", "app2"],
+    )
+    assert settings.namespaces == ["app1", "app2"]
+
+
+def test_label_from_apollo_label_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APOLLO_LABEL", "apollo-gray")
+    assert resolve_label() == "apollo-gray"
+
+
+def test_label_from_app_label_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_LABEL", "java-gray-label")
+    settings = ApolloSettingsConfig(
+        meta_server_address="http://localhost:8080",
+        app_id="test-app",
+    )
+    assert settings.label == "java-gray-label"
+
+
+def test_label_apollo_label_takes_priority_over_app_label(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APOLLO_LABEL", "apollo-first")
+    monkeypatch.setenv("APP_LABEL", "java-second")
+    assert resolve_label() == "apollo-first"
+
+
+def test_label_explicit() -> None:
+    settings = ApolloSettingsConfig(
+        meta_server_address="http://localhost:8080",
+        app_id="test-app",
+        label="explicit-label",
+    )
+    assert settings.label == "explicit-label"
+
+
+def test_namespaces_default() -> None:
+    settings = ApolloSettingsConfig(
+        meta_server_address="http://localhost:8080",
+        app_id="test-app",
+    )
+    assert settings.namespaces == ["application"]

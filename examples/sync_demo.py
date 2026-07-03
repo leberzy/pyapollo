@@ -42,8 +42,8 @@ Examples:
 
 import os
 import argparse
-from pyapollo.client import ApolloClient
-from pyapollo.settings import ApolloSettingsConfig
+from pyapollo import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
 
 
 def main():
@@ -138,7 +138,7 @@ def main():
         print(f"Error fetching value: {e}")
     finally:
         # Stop the polling thread
-        client.stop_polling_thread()
+        client.stop()
 
 
 if __name__ == "__main__":

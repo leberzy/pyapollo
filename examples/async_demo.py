@@ -44,8 +44,8 @@ import os
 import argparse
 import asyncio
 
-from pyapollo.async_client import AsyncApolloClient
-from pyapollo.settings import ApolloSettingsConfig
+from pyapollo import AsyncApolloClient
+from pyapollo.config import ApolloSettingsConfig
 
 
 async def main():

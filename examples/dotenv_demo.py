@@ -30,8 +30,8 @@ Run this script:
 
 import os
 import argparse
-from pyapollo.client import ApolloClient
-from pyapollo.settings import ApolloSettingsConfig
+from pyapollo import ApolloClient
+from pyapollo.config import ApolloSettingsConfig
 
 
 def parse_args():

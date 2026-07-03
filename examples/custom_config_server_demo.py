@@ -5,7 +5,7 @@ This example demonstrates how to use custom config server host and port
 instead of relying on meta server discovery.
 """
 
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 
 def example_1_direct_config_server():
@@ -27,7 +27,7 @@ def example_1_direct_config_server():
     print(f"  Custom host: {config['custom_config_server_host']}")
     print(f"  Custom port: {config['custom_config_server_port']}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_2_update_config_server():
@@ -52,7 +52,7 @@ def example_2_update_config_server():
     print(f"  Custom host: {config['custom_config_server_host']}")
     print(f"  Custom port: {config['custom_config_server_port']}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_3_switch_back_to_meta_server():
@@ -80,7 +80,7 @@ def example_3_switch_back_to_meta_server():
     print(f"  Server: {config['config_server_host']}:{config['config_server_port']}")
     print(f"  Using custom: {bool(config['custom_config_server_host'])}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_4_load_balancing_scenario():
@@ -118,7 +118,7 @@ def example_4_load_balancing_scenario():
         except Exception as e:
             print(f"    Connection failed: {e}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_5_error_handling():
@@ -154,7 +154,7 @@ def example_5_error_handling():
     except Exception as e:
         print(f"✗ Unexpected error: {e}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_6_production_scenario():
@@ -190,8 +190,8 @@ def example_6_production_scenario():
     print(f"  Environment: {config['env']}")
     print(f"  Cluster: {config['cluster']}")
 
-    dev_client.stop_polling_thread()
-    prod_client.stop_polling_thread()
+    dev_client.stop()
+    prod_client.stop()
 
 
 if __name__ == "__main__":

@@ -177,3 +177,7 @@ cython_debug/
 pyapollo/config
 test.env
 *_configuration_application.txt
+.idea
+.DS_Store
+.vscode
+.cursor

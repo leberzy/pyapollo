@@ -4,7 +4,7 @@ Apollo Client Update Config - Simple Usage Examples
 This file shows common scenarios for updating Apollo client configuration.
 """
 
-from pyapollo.client import ApolloClient
+from pyapollo import ApolloClient
 
 
 def example_1_basic_usage():
@@ -24,7 +24,7 @@ def example_1_basic_usage():
     client.update_config(cycle_time=20, cluster="production")
     print("✓ Updated cycle_time and cluster")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_2_namespace_management():
@@ -47,7 +47,7 @@ def example_2_namespace_management():
     config = client.get_current_config()
     print(f"Current namespaces: {config['namespaces']}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_3_environment_switching():
@@ -75,7 +75,7 @@ def example_3_environment_switching():
     )
     print("✓ Switched to staging environment")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_4_security_config():
@@ -94,7 +94,7 @@ def example_4_security_config():
     client.update_config(ip="192.168.1.100")
     print("✓ Set specific IP for gray release")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_5_performance_tuning():
@@ -117,7 +117,7 @@ def example_5_performance_tuning():
     )
     print("✓ Configured for resource conservation")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_6_error_handling():
@@ -145,7 +145,7 @@ def example_6_error_handling():
     except Exception as e:
         print(f"✗ Unexpected error: {e}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 def example_7_configuration_inspection():
@@ -172,7 +172,7 @@ def example_7_configuration_inspection():
     print(f"\nUpdated timeout: {new_config['timeout']}")
     print(f"Updated namespaces: {new_config['namespaces']}")
 
-    client.stop_polling_thread()
+    client.stop()
 
 
 if __name__ == "__main__":
