@@ -1,0 +1,23 @@
+tests/test_settings.py
+  s_0c03b2ed298811::t_1cbcdb93587bdd 9-24
+src/pyapollo/config/settings.py
+  s_0c03b2ed298811::t_4386cb20607f8f 206
+  s_0c03b2ed298811::t_201e2f9adf3fcb 35-37
+  s_0c03b2ed298811::t_a55e035b3e99ce 188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "05abb1501c5940abeb3a27a549ae168b015f5559",
+  "prompts": {},
+  "sessions": {
+    "s_0c03b2ed298811": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "314c50b2-ae14-4d26-9ea0-00053fe945bd",
+        "model": "default"
+      },
+      "human_author": "yangzheng <yangzheng@51shebao.com>"
+    }
+  }
+}
