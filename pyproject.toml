@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shebao-apollo-sdk"
-version = "1.0.0"
+version = "1.0.2"
 description = "Apollo configuration client with async support and pydantic integration"
 readme = "README.md"
 license = "MIT"
@@ -69,8 +69,8 @@ markers = [
 source = ["pyapollo"]
 branch = true
 omit = [
-    "src/pyapollo/client/sync.py",
-    "src/pyapollo/client/async_.py",
+    "src/pyapollo/sync.py",
+    "src/pyapollo/async_.py",
     "src/pyapollo/transport/async_.py",
     "src/pyapollo/repository/async_.py",
 ]
@@ -95,8 +95,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
-"src/pyapollo/client/sync.py" = ["E501"]
-"src/pyapollo/client/async_.py" = ["E501"]
+"src/pyapollo/sync.py" = ["E501"]
+"src/pyapollo/async_.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -107,8 +107,8 @@ mypy_path = "src"
 
 [[tool.mypy.overrides]]
 module = [
-    "pyapollo.client.sync",
-    "pyapollo.client.async_",
+    "pyapollo.sync",
+    "pyapollo.async_",
 ]
 ignore_errors = true
 

@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.2] - 2026-07-04
+
+### Added
+
+- `get_value()` and typed getters search configured namespaces in order when `namespace` is omitted (aligned with Java `apollo.bootstrap.namespaces` precedence).
+
+### Changed
+
+- `ApolloClient` / `AsyncApolloClient` moved from `pyapollo.client/` to package root (`sync.py`, `async_.py`).
+
+## [1.0.1] - 2026-07-03
+
+### Fixed
+
+- `ApolloSettingsConfig` now ignores non-Apollo keys in shared `.env` files (`extra="ignore"`), so mixed business config (e.g. `DATABASE_URL`) no longer causes validation errors.
+
 ## [1.0.0] - 2026-07-03
 
 ### Added

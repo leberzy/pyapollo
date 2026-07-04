@@ -443,15 +443,20 @@ class ApolloClient:
         return self._config_server_url or ""
 
     def get_value(
-        self, key: str, default_val: str | None = None, namespace: str = "application"
+        self, key: str, default_val: str | None = None, namespace: str | None = None
     ) -> str | None:
-        """Get the configuration value as string."""
+        """Get the configuration value as string.
+
+        When ``namespace`` is omitted, searches configured namespaces in order
+        and returns the first match (same precedence as Java bootstrap list).
+        """
         try:
             return cache_get_value(
                 self._memory_cache,
                 key,
                 default_val,
                 namespace=namespace,
+                namespaces=self._namespaces,
             )
         except Exception as exc:
             logger.error("Get key(%s) value failed, error: %s", key, exc)
@@ -461,7 +466,7 @@ class ApolloClient:
         self,
         key: str,
         default_val: dict[str, object] | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> dict[str, object]:
         """Get the configuration value parsed as JSON object."""
         return cache_get_json_value(
@@ -469,13 +474,14 @@ class ApolloClient:
             key,
             default_val,  # type: ignore[arg-type]
             namespace=namespace,
+            namespaces=self._namespaces,
         )
 
     def get_int(
         self,
         key: str,
         default_val: int | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> int | None:
         """Get the configuration value as integer."""
         return cache_get_int(
@@ -483,13 +489,14 @@ class ApolloClient:
             key,
             default_val,
             namespace=namespace,
+            namespaces=self._namespaces,
         )
 
     def get_bool(
         self,
         key: str,
         default_val: bool | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> bool | None:
         """Get the configuration value as boolean."""
         return cache_get_bool(
@@ -497,13 +504,14 @@ class ApolloClient:
             key,
             default_val,
             namespace=namespace,
+            namespaces=self._namespaces,
         )
 
     def get_float(
         self,
         key: str,
         default_val: float | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> float | None:
         """Get the configuration value as float."""
         return cache_get_float(
@@ -511,13 +519,14 @@ class ApolloClient:
             key,
             default_val,
             namespace=namespace,
+            namespaces=self._namespaces,
         )
 
     def get_list(
         self,
         key: str,
         default_val: list[str] | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
         separator: str = ",",
     ) -> list[str]:
         """Get the configuration value as a delimiter-separated list."""
@@ -526,6 +535,7 @@ class ApolloClient:
             key,
             default_val,
             namespace=namespace,
+            namespaces=self._namespaces,
             separator=separator,
         )
 

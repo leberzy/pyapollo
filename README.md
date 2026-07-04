@@ -247,6 +247,12 @@ apollo = ApolloClient()  # 自动从环境变量或.env文件加载配置
 val = apollo.get_value("text_key")
 print(val)
 
+# 多 namespace：不传 namespace 时按 namespaces 配置顺序查找，先命中先返回
+# namespaces=["application", "db", "system"] 时，同名 key 以 application 为准
+apollo = ApolloClient(..., namespaces=["application", "db", "system"])
+apollo.get_value("host")                      # 自动链式查找
+apollo.get_value("host", namespace="db")      # 仅查 db
+
 # 获取 JSON 格式配置项
 json_val = apollo.get_json_value("json_key")
 print(json_val)

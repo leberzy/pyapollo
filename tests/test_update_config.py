@@ -315,7 +315,7 @@ def test_sync_update_config_restarts_background_after_fetch(tmp_path: Path) -> N
     client.stop()
 
 
-@patch("pyapollo.client.sync.get_local_ip", return_value="10.1.2.3")
+@patch("pyapollo.sync.get_local_ip", return_value="10.1.2.3")
 def test_sync_update_config_ip_uses_hint_host(
     mock_get_local_ip: object, tmp_path: Path
 ) -> None:
@@ -338,7 +338,7 @@ def test_sync_update_config_ip_uses_hint_host(
 
 
 @pytest.mark.asyncio
-@patch("pyapollo.client.async_.get_local_ip", return_value="10.1.2.3")
+@patch("pyapollo.async_.get_local_ip", return_value="10.1.2.3")
 async def test_async_update_config_ip_uses_hint_host(
     mock_get_local_ip: object, tmp_path: Path
 ) -> None:

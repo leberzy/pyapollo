@@ -453,15 +453,20 @@ class AsyncApolloClient:
         return self._config_server_url or ""
 
     async def get_value(
-        self, key: str, default_val: str | None = None, namespace: str = "application"
+        self, key: str, default_val: str | None = None, namespace: str | None = None
     ) -> str | None:
-        """Get the configuration value as string."""
+        """Get the configuration value as string.
+
+        When ``namespace`` is omitted, searches configured namespaces in order
+        and returns the first match (same precedence as Java bootstrap list).
+        """
         try:
             return cache_get_value(
                 self._memory_cache,
                 key,
                 default_val,
                 namespace=namespace,
+                namespaces=self._namespaces,
             )
         except Exception as exc:
             logger.error("Get key(%s) value failed, error: %s", key, exc)
@@ -471,7 +476,7 @@ class AsyncApolloClient:
         self,
         key: str,
         default_val: dict[str, object] | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> dict[str, object]:
         """Get the configuration value parsed as JSON object."""
         return cache_get_json_value(
@@ -479,37 +484,56 @@ class AsyncApolloClient:
             key,
             default_val,  # type: ignore[arg-type]
             namespace=namespace,
+            namespaces=self._namespaces,
         )
 
     async def get_int(
         self,
         key: str,
         default_val: int | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> int | None:
-        return cache_get_int(self._memory_cache, key, default_val, namespace=namespace)
+        return cache_get_int(
+            self._memory_cache,
+            key,
+            default_val,
+            namespace=namespace,
+            namespaces=self._namespaces,
+        )
 
     async def get_bool(
         self,
         key: str,
         default_val: bool | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> bool | None:
-        return cache_get_bool(self._memory_cache, key, default_val, namespace=namespace)
+        return cache_get_bool(
+            self._memory_cache,
+            key,
+            default_val,
+            namespace=namespace,
+            namespaces=self._namespaces,
+        )
 
     async def get_float(
         self,
         key: str,
         default_val: float | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
     ) -> float | None:
-        return cache_get_float(self._memory_cache, key, default_val, namespace=namespace)
+        return cache_get_float(
+            self._memory_cache,
+            key,
+            default_val,
+            namespace=namespace,
+            namespaces=self._namespaces,
+        )
 
     async def get_list(
         self,
         key: str,
         default_val: list[str] | None = None,
-        namespace: str = "application",
+        namespace: str | None = None,
         separator: str = ",",
     ) -> list[str]:
         return cache_get_list(
@@ -517,6 +541,7 @@ class AsyncApolloClient:
             key,
             default_val,
             namespace=namespace,
+            namespaces=self._namespaces,
             separator=separator,
         )
 
