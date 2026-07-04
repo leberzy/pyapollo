@@ -1,0 +1,40 @@
+tests/test_update_config.py
+  s_0c03b2ed298811::t_a37745de3a9da3 341
+  s_0c03b2ed298811::t_411241e504ae98 318
+src/pyapollo/__init__.py
+  s_0c03b2ed298811::t_4c5501705daa4c 9-10
+tests/test_getters.py
+  s_0c03b2ed298811::t_0a47d034aee1a5 37-64
+CHANGELOG.md
+  s_0c03b2ed298811::t_2007d8511507f8 5-14
+  s_0c03b2ed298811::t_4931f3c68b359b 15-20
+pyproject.toml
+  s_0c03b2ed298811::t_7c3f752d7e3ff3 7
+  s_0c03b2ed298811::t_bd8c3cdad9f447 110-111
+  s_0c03b2ed298811::t_3e64390d836b49 72-73
+  s_0c03b2ed298811::t_906e5737f000b2 98-99
+README.md
+  s_0c03b2ed298811::t_11d613f7918237 250-255
+src/pyapollo/core/getters.py
+  s_0c03b2ed298811::t_ca5b5ada05c833 7,20-47,53-54,56-62,70-71,73-78,84-88,98-99,101-106,112,121-122,124-129,137,146-147,149-154,160,169-170,173-178
+src/pyapollo/async_.py
+  s_0c03b2ed298811::t_388b1068d22a4a 456,458-462,469,479,487,494,496-502,508,510-516,522,524-530,536,544
+src/pyapollo/sync.py
+  s_0c03b2ed298811::t_0b0afd5bdcd865 446,448-452,459,469,477,484,492,499,507,514,522,529,538
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "d7d9cc15ad069740d10cb7826ae7798c001d7247",
+  "prompts": {},
+  "sessions": {
+    "s_0c03b2ed298811": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "314c50b2-ae14-4d26-9ea0-00053fe945bd",
+        "model": "default"
+      },
+      "human_author": "yangzheng <yangzheng@51shebao.com>"
+    }
+  }
+}
