@@ -100,6 +100,17 @@ def test_constructing_twice_creates_independent_instances(tmp_path: Path) -> Non
     assert a._app_id != b._app_id
 
 
+def test_comma_separated_namespaces_string(tmp_path: Path) -> None:
+    client = ApolloClient(
+        app_id="demo",
+        config_server_host="http://cfg",
+        namespaces="application,db,system",
+        autostart=False,
+        cache_file_dir_path=str(tmp_path),
+    )
+    assert client._namespaces == ["application", "db", "system"]
+
+
 @pytest.mark.asyncio
 async def test_async_autostart_false_skips_start_on_enter(tmp_path: Path) -> None:
     async with AsyncApolloClient(

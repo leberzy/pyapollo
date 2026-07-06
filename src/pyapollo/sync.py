@@ -60,6 +60,15 @@ from pyapollo.transport import (
 logger = logging.getLogger(__name__)
 
 
+def _normalize_namespaces(namespaces: list[str] | str | None) -> list[str]:
+    if namespaces is None:
+        return [DEFAULT_NAMESPACE]
+    if isinstance(namespaces, str):
+        parsed = [ns.strip() for ns in namespaces.split(",") if ns.strip()]
+        return parsed or [DEFAULT_NAMESPACE]
+    return list(namespaces)
+
+
 class ApolloClient:
     """Apollo client based on the official HTTP API."""
 
@@ -163,9 +172,7 @@ class ApolloClient:
                 hint_host=config_server_host or meta_server_address,
             )
             self.label = label if label is not None else resolve_label()
-            self._namespaces = (
-                list(namespaces) if namespaces is not None else [DEFAULT_NAMESPACE]
-            )
+            self._namespaces = _normalize_namespaces(namespaces)
 
         # Custom config server settings (applies regardless of settings vs direct parameters)
         self._custom_config_server_host = config_server_host

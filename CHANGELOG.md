@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.3] - 2026-07-06
+
+### Added
+
+- Process-wide Apollo registry: `init_apollo()`, `get_client()`, `shutdown_apollo()`, `register_apollo_factory()`, `reset_apollo()`.
+- `ApolloConfigProvider` facade for application bootstrap and typed getters.
+- `is_apollo_initialized()` helper.
+
+### Fixed
+
+- Comma-separated `namespaces` string (e.g. `application,db,system`) no longer split into characters when passed to `ApolloClient` / `ApolloConfigProvider.init()`.
+
 ## [1.0.2] - 2026-07-04
 
 ### Added

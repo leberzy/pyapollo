@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shebao-apollo-sdk"
-version = "1.0.2"
+version = "1.0.3"
 description = "Apollo configuration client with async support and pydantic integration"
 readme = "README.md"
 license = "MIT"
