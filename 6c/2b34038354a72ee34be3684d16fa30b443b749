@@ -1,0 +1,42 @@
+CHANGELOG.md
+  s_d5e56ca73ad840::t_23d85c36ece9a3 5-16
+pyproject.toml
+  s_d5e56ca73ad840::t_67726ad07eb12d 7
+src/pyapollo/provider.py
+  s_d5e56ca73ad840::t_b062eca25ddd46 65,70-72
+  s_d5e56ca73ad840::t_01abe00ade67b0 1-29,31-32,39-64,66-69,73-156
+  s_d5e56ca73ad840::t_4180ba99366705 30,33-38
+tests/test_client_lifecycle.py
+  s_d5e56ca73ad840::t_43acc7e04ba9b3 103-113
+tests/test_provider.py
+  s_d5e56ca73ad840::t_4151a76029c994 1-54
+tests/test_registry.py
+  s_d5e56ca73ad840::t_8ecaf611d55574 1-100
+src/pyapollo/sync.py
+  s_d5e56ca73ad840::t_6f52e4acd2ed82 63-71
+  s_d5e56ca73ad840::t_506daa108c8168 175
+src/pyapollo/registry.py
+  s_d5e56ca73ad840::t_5f0886552915ba 1-117
+src/pyapollo/__init__.py
+  s_d5e56ca73ad840::t_29e316a2ca9de6 29
+  s_d5e56ca73ad840::t_9465a7f8ad47d2 15-23,36-42
+  s_d5e56ca73ad840::t_983cf27e85a531 14
+uv.lock
+  s_d5e56ca73ad840::t_72f282d1600656 1161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6c2b34038354a72ee34be3684d16fa30b443b749",
+  "prompts": {},
+  "sessions": {
+    "s_d5e56ca73ad840": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "be21668c-e5c6-45d6-b2de-1e44c0fad932",
+        "model": "default"
+      },
+      "human_author": "yangzheng <yangzheng@51shebao.com>"
+    }
+  }
+}
